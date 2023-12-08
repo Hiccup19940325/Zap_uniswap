@@ -32,6 +32,7 @@ describe("Zap", function () {
   const factory = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
   const wethTousdc = "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc";
   const daiTousdc = "0xAE461cA67B15dc8dc81CE7615e0320dA1A9aB8D5";
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
 
   before(async () => {
     const signers: SignerWithAddress[] = await ethers.getSigners();
@@ -62,6 +63,10 @@ describe("Zap", function () {
   })
 
   describe("#ZapInToken", function () {
+    it("Failed - 0 address", async function () {
+      await expect(zap.zapInToken(zeroAddress, usdcToken, usdc(20))).to.be.revertedWith("should not be 0 address")
+    });
+
     it("Failed - Invalid pair or token", async function () {
       await expect(zap.zapInToken(daiTousdc, usdcToken, usdc(20))).to.be.revertedWith("Invalid pair or token")
     });
@@ -99,6 +104,10 @@ describe("Zap", function () {
   });
 
   describe("#ZapInEth", function () {
+    it("Failed - 0 address", async function () {
+      await expect(zap.zapInEth(zeroAddress)).to.be.revertedWith("should not be 0 address")
+    });
+
     it("Failed - Invalid pair or token", async function () {
       await expect(zap.zapInEth(daiTousdc)).to.be.revertedWith("Invalid pair address")
     });

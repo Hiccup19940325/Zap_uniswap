@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IUniswapV2Factory.sol";
 import "./interfaces/IUniswapV2Pair.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title Zap_uniswap
@@ -17,7 +18,7 @@ import "./interfaces/IUniswapV2Pair.sol";
  * 3: so WETH from 50 USDC and remaining 50 USDC would be remaining
  * 4: then both tokens will be used to add liquidity
  */
-contract Zap {
+contract Zap is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     IUniswapV2Router02 public immutable router;
@@ -36,7 +37,15 @@ contract Zap {
      * @param token token address
      * @param amount amount of token
      */
-    function zapInToken(address _pair, address token, uint amount) external {
+    function zapInToken(
+        address _pair,
+        address token,
+        uint amount
+    ) external nonReentrant {
+        require(
+            _pair != address(0) && token != address(0),
+            "should not be 0 address"
+        );
         address pair = factory.getPair(token, address(weth));
 
         require(pair == _pair, "Invalid pair or token");
@@ -91,7 +100,9 @@ contract Zap {
      * @dev add the liquidity to the pool with only ether
      * @param pair uniswap v2 pair address
      */
-    function zapInEth(address pair) external payable {
+    function zapInEth(address pair) external payable nonReentrant {
+        require(pair != address(0), "should not be 0 address");
+
         address token0 = IUniswapV2Pair(pair).token0();
         address token1 = IUniswapV2Pair(pair).token1();
 
