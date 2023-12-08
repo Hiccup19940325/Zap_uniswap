@@ -73,25 +73,25 @@ describe("Zap", function () {
     it("Success - confirm the LP token increase and return amount", async function () {
 
       const LPcontacts = await ethers.getContractAt('IERC20', wethTousdc);
-      const LPbalance0 = await LPcontacts.balanceOf(alice.address);
+      const LPbalance0 = await LPcontacts.balanceOf(alice.address); //old LP token balance
 
       const UsdcContract = await ethers.getContractAt('IERC20', usdcToken);
       const wethContract = await ethers.getContractAt('IERC20', weth);
 
       await UsdcContract.connect(alice).approve(zap.getAddress(), usdc(20000));
 
-      const usdcBalance0 = await UsdcContract.balanceOf(alice.address);
-      const wethBalance0 = await wethContract.balanceOf(alice.address);
+      const usdcBalance0 = await UsdcContract.balanceOf(alice.address); //old usdc token balance
+      const wethBalance0 = await wethContract.balanceOf(alice.address); //old weth token balance
 
       await zap.connect(alice).zapInToken(wethTousdc, usdcToken, usdc(20000));
 
-      const LPbalance1 = await LPcontacts.balanceOf(alice.address);
-      const usdcBalance1 = await UsdcContract.balanceOf(alice.address);
-      const wethBalance1 = await wethContract.balanceOf(alice.address);
+      const LPbalance1 = await LPcontacts.balanceOf(alice.address); //new LP token balance
+      const usdcBalance1 = await UsdcContract.balanceOf(alice.address); //new usdc token balance
+      const wethBalance1 = await wethContract.balanceOf(alice.address); //new weth token balance
 
-      const usdcIncrease = usdcBalance1 - usdcBalance0 + usdc(20000);
-      const wethIncrease = wethBalance1 - wethBalance0;
-      const LPIncrease = LPbalance1 - LPbalance0;
+      const usdcIncrease = usdcBalance1 - usdcBalance0 + usdc(20000); //returned usdc token
+      const wethIncrease = wethBalance1 - wethBalance0; //returned weth token
+      const LPIncrease = LPbalance1 - LPbalance0; //LP token increase
 
       expect(LPIncrease).to.gt(0);
       expect(usdcIncrease > 0 || wethIncrease > 0).to.equal(true);
@@ -112,19 +112,19 @@ describe("Zap", function () {
       const LPcontacts = await ethers.getContractAt('IERC20', wethTousdc);
       const UsdcContract = await ethers.getContractAt('IERC20', usdcToken);
 
-      const LPbalance0 = await LPcontacts.balanceOf(bob.address);
-      const UsdcBalance0 = await UsdcContract.balanceOf(bob.address);
-      const etherBalance0 = await ethers.provider.getBalance(bob);
+      const LPbalance0 = await LPcontacts.balanceOf(bob.address); //old LP token balance
+      const UsdcBalance0 = await UsdcContract.balanceOf(bob.address); //old usdc token balance
+      const etherBalance0 = await ethers.provider.getBalance(bob); //old ether balance
 
       await zap.connect(bob).zapInEth(wethTousdc, { value: ether(10) });
 
-      const LPbalance1 = await LPcontacts.balanceOf(bob.address);
-      const UsdcBalance1 = await UsdcContract.balanceOf(bob.address);
-      const etherBalance1 = await ethers.provider.getBalance(bob);
+      const LPbalance1 = await LPcontacts.balanceOf(bob.address); //new LP token balance
+      const UsdcBalance1 = await UsdcContract.balanceOf(bob.address); //new usdc token balance
+      const etherBalance1 = await ethers.provider.getBalance(bob); //new ether balance
 
-      const usdcIncrease = UsdcBalance1 - UsdcBalance0;
-      const etherIncrease = etherBalance1 - etherBalance0 + ether(10);
-      const LPIncrease = LPbalance1 - LPbalance0;
+      const usdcIncrease = UsdcBalance1 - UsdcBalance0; // returned usdc token
+      const etherIncrease = etherBalance1 - etherBalance0 + ether(10); // returned ether 
+      const LPIncrease = LPbalance1 - LPbalance0; // LP token increase
 
       expect(LPIncrease).to.gt(0);
       expect(usdcIncrease > 0 || etherIncrease > 0).to.equal(true);
