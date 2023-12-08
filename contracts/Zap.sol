@@ -25,6 +25,9 @@ contract Zap is ReentrancyGuard {
     IUniswapV2Factory public immutable factory;
     IERC20 public immutable weth;
 
+    event ZapInToken(address pair, uint liquidity);
+    event ZapInEther(address pair, uint liquidity);
+
     constructor(address _router, address _weth, address _factory) {
         router = IUniswapV2Router02(_router);
         weth = IERC20(_weth);
@@ -76,16 +79,17 @@ contract Zap is ReentrancyGuard {
         IERC20(token).approve(address(router), toHalf);
         weth.approve(address(router), amounts[1]);
 
-        (uint amountToken, uint amountWeth, ) = router.addLiquidity(
-            token,
-            address(weth),
-            toHalf,
-            amounts[1],
-            1,
-            1,
-            msg.sender,
-            block.timestamp + 600
-        );
+        (uint amountToken, uint amountWeth, uint liquidity) = router
+            .addLiquidity(
+                token,
+                address(weth),
+                toHalf,
+                amounts[1],
+                1,
+                1,
+                msg.sender,
+                block.timestamp + 600
+            );
 
         //return the remaining token or weth
         if (toHalf > amountToken) {
@@ -94,6 +98,8 @@ contract Zap is ReentrancyGuard {
         if (amounts[1] > amountWeth) {
             weth.safeTransfer(msg.sender, amounts[1] - amountWeth);
         }
+
+        emit ZapInToken(_pair, liquidity);
     }
 
     /**
@@ -130,9 +136,15 @@ contract Zap is ReentrancyGuard {
         IERC20(path[1]).approve(address(router), amounts[1]);
 
         //add liquidity
-        (uint amountToken, uint amountEth, ) = router.addLiquidityETH{
-            value: toHalf
-        }(path[1], amounts[1], 1, 1, msg.sender, block.timestamp + 600);
+        (uint amountToken, uint amountEth, uint liquidity) = router
+            .addLiquidityETH{value: toHalf}(
+            path[1],
+            amounts[1],
+            1,
+            1,
+            msg.sender,
+            block.timestamp + 600
+        );
 
         //return the remaining ether or token
         if (amounts[1] > amountToken) {
@@ -142,6 +154,8 @@ contract Zap is ReentrancyGuard {
         if (toHalf > amountEth) {
             payable(msg.sender).transfer(toHalf - amountEth);
         }
+
+        emit ZapInEther(pair, liquidity);
     }
 
     receive() external payable {}
